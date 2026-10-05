@@ -33,6 +33,8 @@ class DatabaseSeeder extends Seeder
             'role' => UserRole::Technical, 'leader_id' => $section->id,
         ]);
 
+        $techs->first()->update(['email' => 'tech@opms.test']);
+
         foreach ($techs as $tech) {
             Kpi::factory(4)->create([
                 'assigned_to' => $tech->id,
