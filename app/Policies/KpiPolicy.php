@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Kpi;
 use App\Models\User;
+use App\Enum\KpiStatus;
 
 class KpiPolicy
 {
@@ -32,5 +33,11 @@ class KpiPolicy
         $kpi->loadMissing('assignee');   // explicit eager load, so lazy-loading protection stays happy
 
         return (int) $kpi->assignee->leader_id === $user->id;
+    }
+
+    public function uploadEvidence(User $user, Kpi $kpi): bool
+    {
+        return $this->isAssignee($user, $kpi)
+            && in_array($kpi->status, [KpiStatus::Assigned, KpiStatus::Rejected], true);
     }
 }

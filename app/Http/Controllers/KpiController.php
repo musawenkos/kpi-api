@@ -13,6 +13,10 @@ use App\Http\Requests\RejectKpiRequest;
 use App\Services\KpiWorkflow;
 use Illuminate\Support\Facades\Gate;
 
+use App\Models\AuditLog;
+use App\Models\KpiEvidence;
+use App\Http\Resources\AuditLogResource;
+
 class KpiController extends Controller
 {
     /**
@@ -117,6 +121,23 @@ class KpiController extends Controller
         return new KpiResource(
             $workflow->transition($kpi, KpiStatus::Rejected, $request->validated('notes'))->load(['assignee', 'assigner'])
         );
+    }
+
+    public function audit(Kpi $kpi)
+    {
+        Gate::authorize('review', $kpi);   // leader only: a design decision, change it if you disagree
+
+        $logs = AuditLog::query()
+            ->where(function ($q) use ($kpi) {
+                $q->where(fn ($q) => $q->where('auditable_type', Kpi::class)
+                                    ->where('auditable_id', $kpi->id))
+                ->orWhere(fn ($q) => $q->where('auditable_type', KpiEvidence::class)
+                                        ->where('new_values->kpi_id', $kpi->id));
+            })
+            ->orderBy('id')
+            ->get();
+
+        return AuditLogResource::collection($logs);
     }
 
     /**

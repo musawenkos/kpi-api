@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('kpi_evidences', function (Blueprint $table) {
-            //
+        Schema::table('kpi_evidence', function (Blueprint $table) {
+            $table->string('mime_type', 100)->after('path');
+            $table->unsignedBigInteger('size_bytes')->after('mime_type');
+            $table->char('sha256', 64)->after('size_bytes');
         });
     }
 
@@ -21,8 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('kpi_evidences', function (Blueprint $table) {
-            //
+        Schema::table('kpi_evidence', function (Blueprint $table) {
+            $table->dropColumn(['mime_type','size_bytes','sha256']);
         });
     }
 };
